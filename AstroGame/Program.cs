@@ -2,6 +2,7 @@
 using System.Collections.Generic;
 using System.Linq;
 using System.Windows.Forms;
+using System.Drawing;
 
 namespace AstroGame
 {
@@ -15,7 +16,16 @@ namespace AstroGame
         {
             Application.EnableVisualStyles();
             Application.SetCompatibleTextRenderingDefault(false);
-            Application.Run(new MainForm());
+
+            MainForm mainForm = new MainForm();
+            Game.Init(mainForm); // Создаем графический буфер для формы
+            Game.Load(); // Создаем игровые объекты на форме
+
+            mainForm.Show(); // Отображаем форму
+
+            Game.Draw(); // Прорисовываем игровые элементы
+
+            Application.Run(mainForm);
         }
     }
 }
