@@ -12,12 +12,18 @@ namespace AstroGame
         static BufferedGraphicsContext context;
         static public BufferedGraphics buffer;
 
-        //Свойства
         //Ширина и высота игрового поля
         static public int Width { get; set; }
         static public int Height { get; set; }
-        static public BaseObject[] objs;
+
+        // Управляющие элементы
+        static public Random Rnd = new Random();
+        static Timer gameTicker = new Timer();
+
+        // Игровые объекты
         static public Star[] stars;
+        static public Asteroid asteroid;
+
         static Image background = Image.FromFile(@"Images\fon.jpg");
 
 
@@ -35,7 +41,7 @@ namespace AstroGame
             context = BufferedGraphicsManager.Current;
             g = form.CreateGraphics(); // Создаем объект - поверхность рисования и связываем его с формой
             // Запоминаем размеры формы
-            Width = form.Width;
+            Width = form.Width - 15;
             Height = form.Height;
 
             buffer = context.Allocate(g, new Rectangle(0, 0, Width, Height));
@@ -44,21 +50,20 @@ namespace AstroGame
         // Создать игровые элементы
         static public void Load()
         {
-            objs = new BaseObject[30];
             stars = new Star[30];
 
-            for (int i = 0; i < objs.Length; i++)
-                objs[i] = new BaseObject(new Point(300, i * 20), new Point(-i, -i), new Size(10, 10));
             for (int i = 0; i < stars.Length; i++)
-                stars[i] = new Star(new Point(150, i * 20), new Point(-i, 0), new Size(5, 5));
+                stars[i] = new Star(new Point(i*15, Rnd.Next(0, Height) - Height), new Point(0, 8), new Size(25, 25));
 
-            Timer timer = new Timer();
-            timer.Interval = 100;
-            timer.Tick += Timer_Tick;
-            timer.Start();
+            asteroid = new Asteroid(new Point(Rnd.Next(0, Width), Rnd.Next(0, Height) - Height), new Point(0, 8), new Size(64, 64));
+
+            // Обновление поведения игровых объектов
+            gameTicker.Interval = 100;
+            gameTicker.Tick += GameTimer_Tick;
+            gameTicker.Start();
         }
 
-        private static void Timer_Tick(object sender, EventArgs e)
+        private static void GameTimer_Tick(object sender, EventArgs e)
         {
             Update();
             Draw();
@@ -69,21 +74,20 @@ namespace AstroGame
             //buffer.Graphics.Clear(Color.Black);
             buffer.Graphics.DrawImage(background, 0, 0);
 
-            foreach (BaseObject obj in objs)
-                obj.Draw();
-
             foreach (Star star in stars)
                 star.Draw();
+
+            asteroid.Draw();
 
             buffer.Render();
         }
 
         static public void Update()
         {
-            foreach (BaseObject obj in objs)
-                obj.Update();
             foreach (Star star in stars)
                 star.Update();
+
+            asteroid.Update();
         }
     }
 }

@@ -6,14 +6,21 @@ using System.Text;
 
 namespace AstroGame
 {
-    class Star:BaseObject
+    class Asteroid : BaseObject
     {
-        static Image image = Image.FromFile(@"Images\star.png");
-
-        public Star(Point position, Point direction, Size size)
-            :base(position, direction, size)
+        static Image[] images =
         {
+            Image.FromFile(@"Images\meteor.png"),
+            Image.FromFile(@"Images\space.png"),
+            Image.FromFile(@"Images\spongebob.png")
+        };
 
+        Image image;
+
+        public Asteroid(Point position, Point direction, Size size)
+            : base(position, direction, size)
+        {
+            image = images[Game.Rnd.Next(images.Length)];
         }
 
         public override void Draw()
@@ -33,6 +40,7 @@ namespace AstroGame
             {
                 position.X = Game.Rnd.Next(0, Game.Width);
                 position.Y = Game.Rnd.Next(0, Game.Height) - Game.Height;
+                image = images[Game.Rnd.Next(images.Length)];
             }
         }
     }
