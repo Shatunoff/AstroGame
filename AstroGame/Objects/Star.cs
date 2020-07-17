@@ -10,8 +10,8 @@ namespace AstroGame
     {
         static Image image = Image.FromFile(@"Images\star.png");
 
-        public Star(Point position, Point direction, Size size)
-            :base(position, direction, size)
+        public Star(Point position, Point direction)
+            :base(position, direction, new Size(25, 25))
         {
 
         }
@@ -29,11 +29,13 @@ namespace AstroGame
             position.Y += direction.Y;
 
             // Обновить позицию при достижении нижней границы игрового поля
-            if (position.Y > Game.Height)
-            {
-                position.X = Game.Rnd.Next(0, Game.Width);
-                position.Y = Game.Rnd.Next(0, Game.Height) - Game.Height;
-            }
+            if (position.Y > Game.Height) Reset();
+        }
+
+        public override void Reset()
+        {
+            position.X = Game.Rnd.Next(0, Game.Width);
+            position.Y = Game.Rnd.Next(0, Game.Height) - Game.Height;
         }
     }
 }

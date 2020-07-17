@@ -7,38 +7,43 @@ using System.Text;
 
 namespace AstroGame
 {
-    class BaseObject
+    interface ICollision
     {
-        protected Point position;
-        protected Point direction;
-        protected Size size;
+        bool Collision(ICollision obj);
+        Rectangle Rect { get; }
+    }
 
+    abstract class BaseObject:ICollision
+    {
+        protected Point position; // Текущая позиция
+        protected Point direction; // Направление движения (целевая позиция)
+        protected Size size; // Размер объекта
+
+        // Прямоугольная область объекта
+        public Rectangle Rect
+        {
+            get
+            {
+                return new Rectangle(position, size);
+            }
+        }
+
+        // Базовый конструктор объекта
         public BaseObject(Point position, Point direction, Size size)
         {
             this.position = position;
             this.direction = direction;
             this.size = size;
         }
+        
+        public abstract void Draw(); // Отрисовка объекта на игровом поле
+        public abstract void Update(); // Обновление поведения объекта
+        public abstract void Reset(); // Сброс позиции объекта
 
-        // Отрисовка объекта на игровом поле
-        public virtual void Draw()
+        // Проверка пересечения с другим объектом ICollision
+        public bool Collision(ICollision obj)
         {
-            Game.buffer.Graphics.DrawEllipse(Pens.Wheat, position.X, position.Y, size.Width, size.Height);
-        }
-
-        // Обновление поведения объекта
-        public virtual void Update()
-        {
-            // Изменение позиции по направлению
-            position.X = position.X + direction.X;
-            position.Y = position.Y + direction.Y;
-
-            // Инвертируем направление при достижении границ экрана
-            if (position.X < 0 || position.X > Game.Width) 
-                direction.X = -direction.X;
-
-            if (position.Y < 0 || position.Y > Game.Height)
-                direction.Y = -direction.Y;
+            return this.Rect.IntersectsWith(obj.Rect);
         }
     }
 }

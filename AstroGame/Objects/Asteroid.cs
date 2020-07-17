@@ -17,12 +17,12 @@ namespace AstroGame
 
         Image image;
 
-        public Asteroid(Point position, Point direction, Size size)
-            : base(position, direction, size)
+        public Asteroid(Point position, Point direction)
+            : base(position, direction, new Size(64, 64))
         {
             image = images[Game.Rnd.Next(images.Length)];
         }
-
+        
         public override void Draw()
         {
             Game.buffer.Graphics.DrawImage(image, position.X, position.Y, size.Width, size.Height);
@@ -36,12 +36,14 @@ namespace AstroGame
             position.Y += direction.Y;
 
             // Обновить позицию при достижении нижней границы игрового поля
-            if (position.Y > Game.Height)
-            {
-                position.X = Game.Rnd.Next(0, Game.Width);
-                position.Y = Game.Rnd.Next(0, Game.Height) - Game.Height;
-                image = images[Game.Rnd.Next(images.Length)];
-            }
+            if (position.Y > Game.Height) Reset();
+        }
+
+        public override void Reset()
+        {
+            position.X = Game.Rnd.Next(0, Game.Width);
+            position.Y = Game.Rnd.Next(0, Game.Height) - Game.Height;
+            image = images[Game.Rnd.Next(images.Length)];
         }
     }
 }

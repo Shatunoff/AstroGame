@@ -23,6 +23,7 @@ namespace AstroGame
         // Игровые объекты
         static public Star[] stars;
         static public Asteroid asteroid;
+        static Bullet bullet; 
 
         static Image background = Image.FromFile(@"Images\fon.jpg");
 
@@ -53,10 +54,11 @@ namespace AstroGame
             stars = new Star[30];
 
             for (int i = 0; i < stars.Length; i++)
-                stars[i] = new Star(new Point(i*15, Rnd.Next(0, Height) - Height), new Point(0, 8), new Size(25, 25));
+                stars[i] = new Star(new Point(i*15, Rnd.Next(0, Height) - Height), new Point(0, 8));
 
-            asteroid = new Asteroid(new Point(Rnd.Next(0, Width), Rnd.Next(0, Height) - Height), new Point(0, 8), new Size(64, 64));
+            asteroid = new Asteroid(new Point(Rnd.Next(0, Width), Rnd.Next(0, Height) - Height), new Point(0, 8));
 
+            bullet = new Bullet(new Point(Width / 2, Height), new Point(0, 5));
             // Обновление поведения игровых объектов
             gameTicker.Interval = 100;
             gameTicker.Tick += GameTimer_Tick;
@@ -71,23 +73,38 @@ namespace AstroGame
 
         static public void Draw()
         {
-            //buffer.Graphics.Clear(Color.Black);
             buffer.Graphics.DrawImage(background, 0, 0);
 
             foreach (Star star in stars)
                 star.Draw();
 
             asteroid.Draw();
+            bullet.Draw();
 
             buffer.Render();
         }
 
         static public void Update()
         {
-            foreach (Star star in stars)
-                star.Update();
+            bullet.Update();
 
             asteroid.Update();
+            if (asteroid.Collision(bullet))
+            {
+                asteroid.Reset();
+                bullet.Reset();
+            }
+
+            foreach (Star star in stars)
+            {
+                star.Update();
+                if (star.Collision(bullet))
+                {
+                    star.Reset();
+                    bullet.Reset();
+                }
+            }
+
         }
     }
 }
