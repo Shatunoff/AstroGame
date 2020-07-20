@@ -56,6 +56,7 @@
     <Compile Include="Objects\Asteroid.cs" />
     <Compile Include="Objects\BaseObject.cs" />
     <Compile Include="Objects\Bullet.cs" />
+    <Compile Include="Objects\Ship.cs" />
     <Compile Include="Objects\Star.cs" />
     <Compile Include="Program.cs" />
     <Compile Include="Properties\AssemblyInfo.cs" />
@@ -94,6 +95,9 @@
       <CopyToOutputDirectory>PreserveNewest</CopyToOutputDirectory>
     </Content>
     <Content Include="Images\meteor.png">
+      <CopyToOutputDirectory>PreserveNewest</CopyToOutputDirectory>
+    </Content>
+    <Content Include="Images\ship.png">
       <CopyToOutputDirectory>PreserveNewest</CopyToOutputDirectory>
     </Content>
     <Content Include="Images\space.png">
