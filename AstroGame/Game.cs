@@ -23,7 +23,8 @@ namespace AstroGame
         // Игровые объекты
         static public Star[] stars;
         static public Asteroid asteroid;
-        static Bullet bullet; 
+        static Bullet bullet;
+        static Ship ship;
 
         static Image background = Image.FromFile(@"Images\fon.jpg");
 
@@ -46,6 +47,23 @@ namespace AstroGame
             Height = form.Height;
 
             buffer = context.Allocate(g, new Rectangle(0, 0, Width, Height));
+
+            form.KeyDown += Form_KeyDown;
+            Ship.action += Ship_action;
+        }
+
+        private static void Ship_action(string obj)
+        {
+            Console.WriteLine(obj);
+        }
+
+        private static void Form_KeyDown(object sender, KeyEventArgs e)
+        {
+            if (e.KeyCode == Keys.Up) ship.Move(new Point(0, -5));
+            if (e.KeyCode == Keys.Down) ship.Move(new Point(0, 5));
+            if (e.KeyCode == Keys.Left) ship.Move(new Point(-5, 0));
+            if (e.KeyCode == Keys.Right) ship.Move(new Point(5, 0));
+            if (e.KeyCode == Keys.Space) bullet = new Bullet(new Point((ship.Position.X + ship.Size.Width / 2), ship.Position.Y), new Point(0, 5));
         }
 
         // Создать игровые элементы
@@ -58,7 +76,7 @@ namespace AstroGame
 
             asteroid = new Asteroid(new Point(Rnd.Next(0, Width), Rnd.Next(0, Height) - Height), new Point(0, 8));
 
-            bullet = new Bullet(new Point(Width / 2, Height), new Point(0, 5));
+            ship = new Ship(new Point(0, Width / 2), new Point(0, 0));
             // Обновление поведения игровых объектов
             gameTicker.Interval = 100;
             gameTicker.Tick += GameTimer_Tick;
@@ -79,29 +97,36 @@ namespace AstroGame
                 star.Draw();
 
             asteroid.Draw();
-            bullet.Draw();
-
+            bullet?.Draw();
+            ship.Draw();
             buffer.Render();
         }
 
         static public void Update()
         {
-            bullet.Update();
+            ship.Update();
+            bullet?.Update();
 
             asteroid.Update();
-            if (asteroid.Collision(bullet))
+            if (bullet != null)
             {
-                asteroid.Reset();
-                bullet.Reset();
+                if (asteroid.Collision(bullet))
+                {
+                    asteroid.Reset();
+                    bullet = null;
+                }
             }
 
             foreach (Star star in stars)
             {
                 star.Update();
-                if (star.Collision(bullet))
+                if (bullet != null)
                 {
-                    star.Reset();
-                    bullet.Reset();
+                    if (star.Collision(bullet))
+                    {
+                        star.Reset();
+                        bullet = null;
+                    }
                 }
             }
 

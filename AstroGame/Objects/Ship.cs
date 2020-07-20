@@ -9,8 +9,25 @@ namespace AstroGame
     class Ship : BaseObject
     {
         static public event Action<string> action;
-
         static Image image = Image.FromFile(@"Images\ship.png");
+
+        public int Energy { get; set; } = 100;
+
+        public Point Position
+        {
+            get
+            {
+                return position;
+            }
+        }
+
+        public Size Size
+        {
+            get
+            {
+                return size;
+            }
+        }
 
         public Ship(Point position, Point direction)
             : base(position, direction, new Size(50, 50))
@@ -21,16 +38,17 @@ namespace AstroGame
         public override void Draw()
         {
             Game.buffer.Graphics.DrawImage(image, position.X, position.Y, size.Width, size.Height);
+            Game.buffer.Graphics.DrawString(Energy.ToString(), SystemFonts.CaptionFont, Brushes.White, position.X - 20, position.Y - size.Height / 3);
         }
 
         // Обновление поведения объекта
         public override void Update()
         {
-            //// Изменение позиции по направлению
-            //position.X += direction.X;
-            //position.Y += direction.Y;
+            // Изменение позиции по направлению
+            position.X += direction.X;
+            position.Y += direction.Y;
 
-            //// Обновить позицию при достижении нижней границы игрового поля
+            // Обновить позицию при достижении нижней границы игрового поля
             //if (position.Y > Game.Height) Reset();
         }
 
@@ -40,7 +58,7 @@ namespace AstroGame
             //position.Y = Game.Rnd.Next(0, Game.Height) - Game.Height;
         }
 
-        public void Move()
+        public void Move(Point direction)
         {
             position.X += direction.X;
             position.Y += direction.Y;
