@@ -24,7 +24,7 @@ namespace AstroGame
 
         // Управляющие элементы
         static public Random Rnd = new Random();
-        static Timer gameTicker;
+        static Timer gameTicker; //TODO: Таймер отказывается останавливаться.
         static GameLevels gameLevels = new GameLevels();
 
         // Игровые объекты
@@ -68,14 +68,11 @@ namespace AstroGame
             Height = form.Height;
             buffer = context.Allocate(g, new Rectangle(0, 0, Width, Height));
 
-            // Скрыть курсор мыши в пределах игрового поля
-            form.MouseEnter += delegate { Cursor.Hide(); };
-            form.MouseLeave += delegate { Cursor.Show(); };
-
             // Управление кораблем с помощью мыши
             form.MouseMove += Form_MouseMove;
             form.MouseDown += Form_MouseDown;
-            form.LostFocus += Form_LostFocus;
+            form.MouseEnter += Form_MouseEnter;
+            form.MouseLeave += Form_MouseLeave; ;
 
             // Подписываемся на события
             Ship.EnergyChanged += Ship_EnergyChanged;
@@ -85,9 +82,19 @@ namespace AstroGame
             NumberOfStarsOrAsteroidsHasChanged += Game_NumberOfStarsOrAsteroidsHasChanged;
         }
 
-        private static void Form_LostFocus(object sender, EventArgs e)
+        private static void Form_MouseEnter(object sender, EventArgs e)
         {
-            GameStop();
+            //GameStart();
+            gameTicker.Start();
+            Cursor.Hide();
+            gameState = GameState.PLAY;
+        }
+
+        private static void Form_MouseLeave(object sender, EventArgs e)
+        {
+            //GameStop();
+            gameTicker.Stop();
+            Cursor.Show();
             gameState = GameState.PAUSE;
         }
 
@@ -138,14 +145,14 @@ namespace AstroGame
 
         private static void GameStart()
         {
-            gameTicker?.Start();
+            gameTicker.Start();
             gameState = GameState.PLAY;
             Cursor.Hide();
         }
 
         private static void GameStop()
         {
-            gameTicker?.Stop();
+            gameTicker.Stop();
             Cursor.Show();
         }
 
@@ -176,8 +183,6 @@ namespace AstroGame
             // Выстрел по нажатию ЛКМ
             if (e.Button == MouseButtons.Left)
             {
-                if (gameState == GameState.PAUSE)
-                    GameStart();
                 if (gameState == GameState.PLAY)
                     bullets.Add(new Bullet(new Point((ship.Position.X + ship.Size.Width / 2), ship.Position.Y), new Point(0, CONF_BULLET_SPEED)));
             }
