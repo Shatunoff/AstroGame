@@ -26,6 +26,10 @@ namespace AstroGame
         static Bullet bullet;
         static Ship ship;
 
+        // Информационные надписи
+        static public string EnergyText = "Энергия: ";
+        static public int EnergyValue;
+
         static Image background = Image.FromFile(@"Images\fon.jpg");
 
 
@@ -37,33 +41,58 @@ namespace AstroGame
         // Создать графический буфер для элемента, привязываем его к полю buffer
         static public void Init(Form form)
         {
-            // Графическое устройство для вывода графики
             Graphics g;
-            // предоставляет доступ к главному буферу графического контекста для текущего приложения
             context = BufferedGraphicsManager.Current;
-            g = form.CreateGraphics(); // Создаем объект - поверхность рисования и связываем его с формой
-            // Запоминаем размеры формы
+            g = form.CreateGraphics();
             Width = form.Width - 15;
             Height = form.Height;
-
             buffer = context.Allocate(g, new Rectangle(0, 0, Width, Height));
 
-            form.KeyDown += Form_KeyDown;
-            Ship.action += Ship_action;
+            // Скрыть курсор мыши в пределах игрового поля
+            form.MouseEnter += delegate { Cursor.Hide(); };
+            form.MouseLeave += delegate { Cursor.Show(); };
+
+            // Управление кораблем с помощью мыши
+            form.MouseMove += Form_MouseMove;
+            form.MouseDown += Form_MouseDown;
+
+            // Подписываемся на события корабля
+            Ship.EnergyChanged += Ship_EnergyChanged;
+            Ship.OutOfEnergy += Ship_OutOfEnergy;
         }
 
-        private static void Ship_action(string obj)
+        // Изменение энергии корабля
+        private static void Ship_EnergyChanged()
         {
-            Console.WriteLine(obj);
+            if (ship != null)
+            {
+                EnergyValue = ship.Energy;
+            }
         }
 
-        private static void Form_KeyDown(object sender, KeyEventArgs e)
+        // Отсутствие энергии у корабля
+        private static void Ship_OutOfEnergy()
         {
-            if (e.KeyCode == Keys.Up) ship.Move(new Point(0, -5));
-            if (e.KeyCode == Keys.Down) ship.Move(new Point(0, 5));
-            if (e.KeyCode == Keys.Left) ship.Move(new Point(-5, 0));
-            if (e.KeyCode == Keys.Right) ship.Move(new Point(5, 0));
-            if (e.KeyCode == Keys.Space) bullet = new Bullet(new Point((ship.Position.X + ship.Size.Width / 2), ship.Position.Y), new Point(0, 5));
+            GameOver();
+        }
+
+        private static void GameOver()
+        {
+            gameTicker?.Stop();
+            Cursor.Show();
+            MessageBox.Show($"Ваш корабль был уничтожен. Игра окончена.\nНабрано очков: {GamePoints.Value.ToString()}", "Конец игры");
+        }
+
+        private static void Form_MouseDown(object sender, MouseEventArgs e)
+        {
+            // Выстрел по нажатию ЛКМ
+            if (e.Button == MouseButtons.Left) bullet = new Bullet(new Point((ship.Position.X + ship.Size.Width / 2), ship.Position.Y), new Point(0, 5));
+        }
+
+        private static void Form_MouseMove(object sender, MouseEventArgs e)
+        {
+            // Движение вслед за мышью, если та в пределах игрового поля
+            if ((e.X >= 0 && e.X <= Width) && (e.Y >= 0 && e.Y < Height)) ship.Move(e.Location);
         }
 
         // Создать игровые элементы
@@ -75,8 +104,11 @@ namespace AstroGame
                 stars[i] = new Star(new Point(i*15, Rnd.Next(0, Height) - Height), new Point(0, 8));
 
             asteroid = new Asteroid(new Point(Rnd.Next(0, Width), Rnd.Next(0, Height) - Height), new Point(0, 8));
-
             ship = new Ship(new Point(0, Width / 2), new Point(0, 0));
+
+            // Заполняем информационные переменные начальными данными
+            EnergyValue = ship.Energy;
+
             // Обновление поведения игровых объектов
             gameTicker.Interval = 100;
             gameTicker.Tick += GameTimer_Tick;
@@ -92,44 +124,72 @@ namespace AstroGame
         static public void Draw()
         {
             buffer.Graphics.DrawImage(background, 0, 0);
+            Game.buffer.Graphics.DrawString(EnergyText + EnergyValue.ToString(), SystemFonts.CaptionFont, Brushes.White, 0, 0);
+            Game.buffer.Graphics.DrawString(GamePoints.GetPointsToString(), SystemFonts.CaptionFont, Brushes.White, 100, 0);
 
             foreach (Star star in stars)
                 star.Draw();
 
-            asteroid.Draw();
+            asteroid?.Draw();
             bullet?.Draw();
-            ship.Draw();
+            ship?.Draw();
             buffer.Render();
         }
 
         static public void Update()
         {
-            ship.Update();
+            ship?.Update();
             bullet?.Update();
 
             asteroid.Update();
+
             if (bullet != null)
             {
+                // Проверка на столкновение АСТЕРОИД == ПУЛЯ
                 if (asteroid.Collision(bullet))
                 {
                     asteroid.Reset();
+                    GamePoints.PointsHightUp();
                     bullet = null;
                 }
             }
 
+            if (ship != null)
+            {
+                // Проверка на столкновение АСТЕРОИД == КОРАБЛЬ
+                if (asteroid.Collision(ship))
+                {
+                    asteroid.Reset();
+                    GamePoints.PointsMiddleUp();
+                    ship.Damage(20);
+                }
+            }
+
+            // Состояние ЗВЕЗД
             foreach (Star star in stars)
             {
                 star.Update();
+                // Проверка на столкновение ЗВЕЗДА == ПУЛЯ
                 if (bullet != null)
                 {
                     if (star.Collision(bullet))
                     {
                         star.Reset();
+                        GamePoints.PointsMiddleUp();
                         bullet = null;
                     }
                 }
+                // Проверка на столкновение ЗВЕЗДА == КОРАБЛЬ
+                if (ship != null)
+                {
+                    if (star.Collision(ship))
+                    {
+                        star.Reset();
+                        GamePoints.PointsLowUp();
+                        ship.Damage(10);
+                    }
+                }
             }
-
         }
     }
 }

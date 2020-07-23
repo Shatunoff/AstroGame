@@ -8,10 +8,32 @@ namespace AstroGame
 {
     class Ship : BaseObject
     {
-        static public event Action<string> action;
+        static public event Action OutOfEnergy; // Отсутствует энергия
+        static public event Action EnergyChanged; // Энергия сократилась
+
         static Image image = Image.FromFile(@"Images\ship.png");
 
-        public int Energy { get; set; } = 100;
+        private int energy = 100;
+        public int Energy
+        {
+            get
+            {
+                return energy;
+            }
+            private set
+            {
+                if (value <= 0)
+                {
+                    energy = 0;
+                    OutOfEnergy?.Invoke(); // Сообщить подписчикам события об отсутствии энергии
+                }
+                else
+                {
+                    energy = value;
+                    EnergyChanged?.Invoke(); // Сообщить подписчикам события об изменении количества энергии
+                }
+            }
+        } 
 
         public Point Position
         {
@@ -38,7 +60,6 @@ namespace AstroGame
         public override void Draw()
         {
             Game.buffer.Graphics.DrawImage(image, position.X, position.Y, size.Width, size.Height);
-            Game.buffer.Graphics.DrawString(Energy.ToString(), SystemFonts.CaptionFont, Brushes.White, position.X - 20, position.Y - size.Height / 3);
         }
 
         // Обновление поведения объекта
@@ -47,26 +68,22 @@ namespace AstroGame
             // Изменение позиции по направлению
             position.X += direction.X;
             position.Y += direction.Y;
+        }
 
-            // Обновить позицию при достижении нижней границы игрового поля
-            //if (position.Y > Game.Height) Reset();
+        public void Damage(int value)
+        {
+            Energy -= value;
         }
 
         public override void Reset()
         {
-            //position.X = Game.Rnd.Next(0, Game.Width);
-            //position.Y = Game.Rnd.Next(0, Game.Height) - Game.Height;
+
         }
 
         public void Move(Point direction)
         {
-            position.X += direction.X;
-            position.Y += direction.Y;
-
-            if (position.X == 0) action("LEFT");
-            if (position.X == Game.Width) action("RIGHT");
-            if (position.Y == 0) action("TOP");
-            if (position.Y == Game.Height) action("BOTTOM");
+            position.X = direction.X - 25;
+            position.Y = direction.Y - 25;
         }
     }
 }
