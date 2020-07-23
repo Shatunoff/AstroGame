@@ -50,6 +50,7 @@
   </ItemGroup>
   <ItemGroup>
     <Compile Include="Game.cs" />
+    <Compile Include="GameLevels.cs" />
     <Compile Include="GamePoints.cs" />
     <Compile Include="MainForm.cs">
       <SubType>Form</SubType>

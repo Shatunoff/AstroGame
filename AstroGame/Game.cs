@@ -18,7 +18,7 @@ namespace AstroGame
 
         // Управляющие элементы
         static public Random Rnd = new Random();
-        static Timer gameTicker = new Timer();
+        static Timer gameTicker;
 
         // Игровые объекты
         static Star[] stars;
@@ -30,12 +30,16 @@ namespace AstroGame
         static public string EnergyText = "Энергия: ";
         static public int EnergyValue;
 
-        // Конфигурация коллекций
-        const int COUNT_STARS = 40; // Количество звезд
-        const int COUNT_ASTEROIDS = 2; // Количество астероидов
+        // Конфигурация уровней
+        static private int CONF_CURRENT_LEVEL = GameLevels.CurrentLevel;
+        static private int CONF_ASTEROID_COUNT = GameLevels.AsteroidCount;
+        static private int CONF_STAR_COUNT = GameLevels.StarCount;
+        static private int CONF_ASTEROID_SPEED = GameLevels.AsteroidSpeed;
+        static private int CONF_STAR_SPEED = GameLevels.StarSpeed;
+        static private int CONF_BULLET_SPEED = GameLevels.BulletSpeed;
+        static private int CONF_TIME_BEFORE_HEALBOX = GameLevels.TimeBeforeHealBoxMS;
 
         static Image background = Image.FromFile(@"Images\fon.jpg");
-
 
         static Game()
         {
@@ -99,7 +103,7 @@ namespace AstroGame
             // Выстрел по нажатию ЛКМ
             if (e.Button == MouseButtons.Left)
             {
-                bullets.Add(new Bullet(new Point((ship.Position.X + ship.Size.Width / 2), ship.Position.Y), new Point(0, 25)));
+                bullets.Add(new Bullet(new Point((ship.Position.X + ship.Size.Width / 2), ship.Position.Y), new Point(0, CONF_BULLET_SPEED)));
             }
         }
 
@@ -112,14 +116,14 @@ namespace AstroGame
         // Создать игровые элементы
         static public void Load()
         {
-            stars = new Star[COUNT_STARS];
-            asteroids = new Asteroid[COUNT_ASTEROIDS];
+            stars = new Star[CONF_STAR_COUNT];
+            asteroids = new Asteroid[CONF_ASTEROID_COUNT];
 
             for (int i = 0; i < stars.Length; i++)
-                stars[i] = new Star(new Point(i*15, Rnd.Next(0, Height) - Height), new Point(0, 8));
+                stars[i] = new Star(new Point(Rnd.Next(0, Width), Rnd.Next(0, Height) - Height), new Point(0, CONF_STAR_SPEED));
 
             for (int i = 0; i < asteroids.Length; i++)
-                asteroids[i] = new Asteroid(new Point(Rnd.Next(0, Width), Rnd.Next(0, Height) - Height), new Point(0, 8));
+                asteroids[i] = new Asteroid(new Point(Rnd.Next(0, Width), Rnd.Next(0, Height) - Height), new Point(0, CONF_ASTEROID_SPEED));
 
             ship = new Ship(new Point(0, Width / 2), new Point(0, 0));
 
@@ -127,6 +131,7 @@ namespace AstroGame
             EnergyValue = ship.Energy;
 
             // Обновление поведения игровых объектов
+            gameTicker = new Timer();
             gameTicker.Interval = 100;
             gameTicker.Tick += GameTimer_Tick;
             gameTicker.Start();
