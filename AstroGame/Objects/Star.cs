@@ -8,6 +8,8 @@ namespace AstroGame
 {
     class Star:BaseObject
     {
+        public static event Action<Star> starReset;
+
         static Image image = Image.FromFile(@"Images\star.png");
 
         public Star(Point position, Point direction)
@@ -29,13 +31,18 @@ namespace AstroGame
             position.Y += direction.Y;
 
             // Обновить позицию при достижении нижней границы игрового поля
-            if (position.Y > Game.Height) Reset();
+            if (position.Y > Game.Height) RefreshPosition();
+        }
+
+        public void RefreshPosition()
+        {
+            position.X = Game.Rnd.Next(0, Game.Width);
+            position.Y = Game.Rnd.Next(0, Game.Height) - Game.Height;
         }
 
         public override void Reset()
         {
-            position.X = Game.Rnd.Next(0, Game.Width);
-            position.Y = Game.Rnd.Next(0, Game.Height) - Game.Height;
+            starReset?.Invoke(this);
         }
     }
 }

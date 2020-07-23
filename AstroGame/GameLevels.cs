@@ -6,21 +6,21 @@ using System.Threading.Tasks;
 
 namespace AstroGame
 {
-    static class GameLevels
+    class GameLevels
     {
-        static private int asteroidSpeed;
-        static private int starSpeed;
-        static private int bulletSpeed;
-        static private double timeBeforeHealBox; // Время до аптечки (секунд)
+        private int asteroidSpeed;
+        private int starSpeed;
+        private int bulletSpeed;
+        private double timeBeforeHealBox; // Время до аптечки (секунд)
 
-        static public event Action LevelIsChanged; // Событие изменения уровня
+        public event Action LevelIsChanged; // Событие изменения уровня
 
         // Текущий уровень
-        static public int CurrentLevel { get; private set; } 
+        public int CurrentLevel { get; private set; } 
 
         // Астероиды
-        static public int AsteroidCount { get; private set; }
-        static public int AsteroidSpeed
+        public int AsteroidCount { get; private set; }
+        public int AsteroidSpeed
         {
             get
             {
@@ -33,8 +33,8 @@ namespace AstroGame
         }
 
         // Звезды
-        static public int StarCount { get; private set; }
-        static public int StarSpeed
+        public int StarCount { get; private set; }
+        public int StarSpeed
         {
             get
             {
@@ -47,7 +47,7 @@ namespace AstroGame
         }
 
         // Пули
-        static public int BulletSpeed
+        public int BulletSpeed
         {
             get
             {
@@ -60,73 +60,54 @@ namespace AstroGame
         }
 
         // Аптечка
-        static public int TimeBeforeHealBoxMS
-        {
-            get
-            {
-                return (int)(timeBeforeHealBox * 1000.0);
-            }
-        }
+        public int HealBoxCount { get; set; }
 
-        static private double TimeBeforeHealBox
-        {
-            get
-            {
-                return timeBeforeHealBox;
-            }
-            set
-            {
-                if (value > 5.0) timeBeforeHealBox = value;
-            }
-        }
-
-        static GameLevels()
+        public GameLevels()
         {
             CurrentLevel = 1;
 
             AsteroidCount = 1;
-            AsteroidSpeed = 5;
+            AsteroidSpeed = 6;
 
             StarCount = 30;
             StarSpeed = 7;
 
             BulletSpeed = 20;
 
-            TimeBeforeHealBox = 60.0;
+            HealBoxCount = 1;
 
             LevelIsChanged += GameLevels_LevelIsChanged;
         }
 
-        private static void GameLevels_LevelIsChanged()
+        private void GameLevels_LevelIsChanged()
         {
             // Изменения каждые N уровней
             if (CurrentLevel % 1 == 0)
             {
                 StarCount++;
             }
-            if (CurrentLevel %2 == 0)
-            {
-                TimeBeforeHealBox--;
-            }
-            if (CurrentLevel % 3 == 0)
-            {
-                StarSpeed++;
-            }
             if (CurrentLevel % 5 == 0)
             {
                 AsteroidCount++;
+                StarSpeed++;
             }
             if (CurrentLevel % 9 == 0)
             {
                 BulletSpeed++;
                 AsteroidSpeed++;
+                HealBoxCount++;
             }
         }
 
-        static public void NextLevel()
+        public void NextLevel()
         {
             CurrentLevel++;
             LevelIsChanged?.Invoke();
+        }
+
+        public string GetCurrentLevelToString()
+        {
+            return $"Уровень: {CurrentLevel.ToString()}";
         }
     }
 }

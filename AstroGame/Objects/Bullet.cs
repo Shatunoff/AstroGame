@@ -37,6 +37,7 @@ namespace AstroGame
         public override void Reset()
         {
             bulletReset?.Invoke(this);
+            size = new Size(0, 0);
         }
     }
 }
