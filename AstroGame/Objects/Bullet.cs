@@ -9,6 +9,8 @@ namespace AstroGame
 {
     class Bullet:BaseObject
     {
+        public static event Action<Bullet> bulletReset;
+
         static Image image = Image.FromFile(@"Images\bullet.png");
 
         public Bullet(Point position, Point direction)
@@ -34,8 +36,7 @@ namespace AstroGame
 
         public override void Reset()
         {
-            position.X = Game.Rnd.Next(0, Game.Width);
-            position.Y = Game.Height;
+            bulletReset?.Invoke(this);
         }
     }
 }

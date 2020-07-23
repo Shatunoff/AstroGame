@@ -21,14 +21,18 @@ namespace AstroGame
         static Timer gameTicker = new Timer();
 
         // Игровые объекты
-        static public Star[] stars;
-        static public Asteroid asteroid;
-        static Bullet bullet;
+        static Star[] stars;
+        static Asteroid[] asteroids;
+        static List<Bullet> bullets = new List<Bullet>();
         static Ship ship;
 
         // Информационные надписи
         static public string EnergyText = "Энергия: ";
         static public int EnergyValue;
+
+        // Конфигурация коллекций
+        const int COUNT_STARS = 40; // Количество звезд
+        const int COUNT_ASTEROIDS = 2; // Количество астероидов
 
         static Image background = Image.FromFile(@"Images\fon.jpg");
 
@@ -59,6 +63,13 @@ namespace AstroGame
             // Подписываемся на события корабля
             Ship.EnergyChanged += Ship_EnergyChanged;
             Ship.OutOfEnergy += Ship_OutOfEnergy;
+            Bullet.bulletReset += Bullet_bulletReset;
+
+        }
+
+        private static void Bullet_bulletReset(Bullet obj)
+        {
+            obj = null;
         }
 
         // Изменение энергии корабля
@@ -86,7 +97,10 @@ namespace AstroGame
         private static void Form_MouseDown(object sender, MouseEventArgs e)
         {
             // Выстрел по нажатию ЛКМ
-            if (e.Button == MouseButtons.Left) bullet = new Bullet(new Point((ship.Position.X + ship.Size.Width / 2), ship.Position.Y), new Point(0, 5));
+            if (e.Button == MouseButtons.Left)
+            {
+                bullets.Add(new Bullet(new Point((ship.Position.X + ship.Size.Width / 2), ship.Position.Y), new Point(0, 25)));
+            }
         }
 
         private static void Form_MouseMove(object sender, MouseEventArgs e)
@@ -98,12 +112,15 @@ namespace AstroGame
         // Создать игровые элементы
         static public void Load()
         {
-            stars = new Star[30];
+            stars = new Star[COUNT_STARS];
+            asteroids = new Asteroid[COUNT_ASTEROIDS];
 
             for (int i = 0; i < stars.Length; i++)
                 stars[i] = new Star(new Point(i*15, Rnd.Next(0, Height) - Height), new Point(0, 8));
 
-            asteroid = new Asteroid(new Point(Rnd.Next(0, Width), Rnd.Next(0, Height) - Height), new Point(0, 8));
+            for (int i = 0; i < asteroids.Length; i++)
+                asteroids[i] = new Asteroid(new Point(Rnd.Next(0, Width), Rnd.Next(0, Height) - Height), new Point(0, 8));
+
             ship = new Ship(new Point(0, Width / 2), new Point(0, 0));
 
             // Заполняем информационные переменные начальными данными
@@ -128,10 +145,14 @@ namespace AstroGame
             Game.buffer.Graphics.DrawString(GamePoints.GetPointsToString(), SystemFonts.CaptionFont, Brushes.White, 100, 0);
 
             foreach (Star star in stars)
-                star.Draw();
+                star?.Draw();
 
-            asteroid?.Draw();
-            bullet?.Draw();
+            foreach (Bullet bullet in bullets)
+                bullet?.Draw();
+
+            foreach (Asteroid asteroid in asteroids)
+                asteroid?.Draw();
+
             ship?.Draw();
             buffer.Render();
         }
@@ -139,52 +160,68 @@ namespace AstroGame
         static public void Update()
         {
             ship?.Update();
-            bullet?.Update();
 
-            asteroid.Update();
-
-            if (bullet != null)
+            // Проверка состояния пуль
+            foreach (Bullet bullet in bullets)
             {
-                // Проверка на столкновение АСТЕРОИД == ПУЛЯ
-                if (asteroid.Collision(bullet))
-                {
-                    asteroid.Reset();
-                    GamePoints.PointsHightUp();
-                    bullet = null;
-                }
-            }
-
-            if (ship != null)
-            {
-                // Проверка на столкновение АСТЕРОИД == КОРАБЛЬ
-                if (asteroid.Collision(ship))
-                {
-                    asteroid.Reset();
-                    GamePoints.PointsMiddleUp();
-                    ship.Damage(20);
-                }
-            }
-
-            // Состояние ЗВЕЗД
-            foreach (Star star in stars)
-            {
-                star.Update();
-                // Проверка на столкновение ЗВЕЗДА == ПУЛЯ
                 if (bullet != null)
                 {
-                    if (star.Collision(bullet))
+                    bullet.Update();
+                    // Проверка на столкновение ПУЛЯ == АСТЕРОИД
+                    foreach (Asteroid asteroid in asteroids)
                     {
-                        star.Reset();
-                        GamePoints.PointsMiddleUp();
-                        bullet = null;
+                        if (asteroid != null)
+                        {
+                            if (bullet.Collision(asteroid))
+                            {
+                                asteroid.Reset();
+                                GamePoints.PointsHightUp();
+                                bullet.Reset();
+                            }
+                        }
+                    }
+                    // Проверка на столкновение ПУЛЯ == ЗВЕЗДА
+                    foreach (Star star in stars)
+                    {
+                        if (star != null)
+                        {
+                            if (bullet.Collision(star))
+                            {
+                                star.Reset();
+                                GamePoints.PointsMiddleUp();
+                                bullet.Reset();
+                            }
+                        }
                     }
                 }
-                // Проверка на столкновение ЗВЕЗДА == КОРАБЛЬ
-                if (ship != null)
+            }
+
+            // Проверка состояния Астероидов
+            foreach (Asteroid asteroid in asteroids)
+            {
+                if (asteroid != null)
                 {
+                    asteroid.Update();
+                    // Проверка на столкновение АСТЕРОИД == КОРАБЛЬ
+                    if (asteroid.Collision(ship))
+                    {
+                        asteroid.Reset(); // Сбросить  позицию астероида
+                        GamePoints.PointsMiddleUp();
+                        ship.Damage(20);
+                    }
+                }
+            }
+
+            // Проверка состояния Звезд
+            foreach (Star star in stars)
+            {
+                if (star != null)
+                {
+                    star.Update();
+                    // Проверка на столкновение ЗВЕЗДА == КОРАБЛЬ
                     if (star.Collision(ship))
                     {
-                        star.Reset();
+                        star.Reset(); // Сбросить позицию звезды
                         GamePoints.PointsLowUp();
                         ship.Damage(10);
                     }
