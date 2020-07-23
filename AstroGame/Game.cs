@@ -152,7 +152,7 @@ namespace AstroGame
         private static void RetryGame()
         {
             gameLevels = new GameLevels();
-            Cursor.Hide();
+            GameStart();
         }
 
         private static void GameOver()
@@ -164,7 +164,6 @@ namespace AstroGame
             {
                 RetryGame();
                 Load(true);
-                GameStart();
             }
             else
             {
