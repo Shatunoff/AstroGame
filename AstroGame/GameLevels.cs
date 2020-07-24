@@ -11,7 +11,6 @@ namespace AstroGame
         private int asteroidSpeed;
         private int starSpeed;
         private int bulletSpeed;
-        private double timeBeforeHealBox; // Время до аптечки (секунд)
 
         public event Action LevelIsChanged; // Событие изменения уровня
 
@@ -107,7 +106,7 @@ namespace AstroGame
 
         public string GetCurrentLevelToString()
         {
-            return $"Уровень: {CurrentLevel.ToString()}";
+            return $"Уровень: {CurrentLevel}";
         }
     }
 }

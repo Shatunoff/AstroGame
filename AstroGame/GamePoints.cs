@@ -8,25 +8,12 @@ namespace AstroGame
 {
     static class GamePoints
     {
-        static private int pointsValue = 0;
+        static public string    Caption { get; private set; }   = "Очки";
+        static public int       Value   { get; private set; }   = 0;
 
-        static public int Value
-        {
-            get
-            {
-                return pointsValue;
-            }
-        }
-
-        static public string Caption { get; set; } = "Очки";
-
-        static public string GetPointsToString()
-        {
-            return Caption + ": " + pointsValue.ToString();
-        }
-
-        static public void PointsLowUp() => pointsValue += 100;
-        static public void PointsMiddleUp() => pointsValue += 200;
-        static public void PointsHightUp() => pointsValue += 300;
+        static public string    GetPointsToString()             => Caption + ": " + Value.ToString();
+        static public void      PointsLowUp()                   => Value += 100;
+        static public void      PointsMiddleUp()                => Value += 200;
+        static public void      PointsHightUp()                 => Value += 300;
     }
 }

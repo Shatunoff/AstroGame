@@ -7,44 +7,39 @@ using System.Windows.Forms;
 
 namespace AstroGame
 {
-    public enum GameState
-    {
-        PLAY, PAUSE, STOP
-    }
-
     static class Game
     {
-        static GameState gameState; 
-        static BufferedGraphicsContext context;
-        static public BufferedGraphics buffer;
+        static BufferedGraphicsContext  context;
+        static public BufferedGraphics  buffer;
 
         //Ширина и высота игрового поля
-        static public int Width { get; set; }
-        static public int Height { get; set; }
+        static public int Width     { get; set; }
+        static public int Height    { get; set; }
 
         // Управляющие элементы
-        static public Random Rnd = new Random();
-        static Timer gameTicker; //TODO: Таймер отказывается останавливаться.
-        static GameLevels gameLevels = new GameLevels();
+        static public   Random          Rnd             = new Random();
+        static private  Timer           gameTicker      = new Timer();
+        static private  GameLevels      GAME_LEVELS     = new GameLevels();
+        static private  GameControl     GAME_CONTROL    = new GameControl();
 
         // Игровые объекты
-        static Star[] stars;
-        static Asteroid[] asteroids;
-        static List<Bullet> bullets;
-        static Ship ship;
+        static          Star[]          stars;
+        static          Asteroid[]      asteroids;
+        static          List<Bullet>    bullets;
+        static          Ship            ship;
 
         // Информационные надписи
-        static public string EnergyText = "Энергия: ";
-        static public int EnergyValue;
+        static public string    EnergyText = "Энергия: ";
+        static public int       EnergyValue;
 
         // Конфигурация уровней
-        static private int CONF_CURRENT_LEVEL = gameLevels.CurrentLevel;
-        static private int CONF_ASTEROID_COUNT = gameLevels.AsteroidCount;
-        static private int CONF_STAR_COUNT = gameLevels.StarCount;
-        static private int CONF_ASTEROID_SPEED = gameLevels.AsteroidSpeed;
-        static private int CONF_STAR_SPEED = gameLevels.StarSpeed;
-        static private int CONF_BULLET_SPEED = gameLevels.BulletSpeed;
-        static private int CONF_HEALBOX_COUNT = gameLevels.HealBoxCount;
+        static private int  CONF_CURRENT_LEVEL   = GAME_LEVELS.CurrentLevel;
+        static private int  CONF_ASTEROID_COUNT  = GAME_LEVELS.AsteroidCount;
+        static private int  CONF_STAR_COUNT      = GAME_LEVELS.StarCount;
+        static private int  CONF_ASTEROID_SPEED  = GAME_LEVELS.AsteroidSpeed;
+        static private int  CONF_STAR_SPEED      = GAME_LEVELS.StarSpeed;
+        static private int  CONF_BULLET_SPEED    = GAME_LEVELS.BulletSpeed;
+        static private int  CONF_HEALBOX_COUNT   = GAME_LEVELS.HealBoxCount;
 
         // Остатки до перехода на следующий уровень
         static private int NOW_ASTEROID_COUNT;
@@ -72,9 +67,10 @@ namespace AstroGame
             form.MouseMove += Form_MouseMove;
             form.MouseDown += Form_MouseDown;
             form.MouseEnter += Form_MouseEnter;
-            form.MouseLeave += Form_MouseLeave; ;
+            form.MouseLeave += Form_MouseLeave;
 
             // Подписываемся на события
+            GameControl.GameStateChanged += GameControl_GameStateChanged;
             Ship.EnergyChanged += Ship_EnergyChanged;
             Ship.OutOfEnergy += Ship_OutOfEnergy;
             Star.starReset += BaseObjectReset;
@@ -82,27 +78,45 @@ namespace AstroGame
             NumberOfStarsOrAsteroidsHasChanged += Game_NumberOfStarsOrAsteroidsHasChanged;
         }
 
+        // Реакция на изменение статуса игры
+        private static void GameControl_GameStateChanged()
+        {
+            switch (GAME_CONTROL.GameState)
+            {
+                case GameState.PLAYING:
+                    gameTicker.Start();
+                    Cursor.Hide();
+                    break;
+                case GameState.RESTARTING:
+                    gameTicker.Stop();
+                    Cursor.Show();
+                    break;
+                case GameState.PAUSE:
+                    gameTicker.Stop();
+                    Cursor.Show();
+                    break;
+                case GameState.STOP:
+                    gameTicker.Stop();
+                    Cursor.Show();
+                    break;
+            }
+        }
+
         private static void Form_MouseEnter(object sender, EventArgs e)
         {
-            //GameStart();
-            gameTicker.Start();
-            Cursor.Hide();
-            gameState = GameState.PLAY;
+            GAME_CONTROL.Start();
         }
 
         private static void Form_MouseLeave(object sender, EventArgs e)
         {
-            //GameStop();
-            gameTicker.Stop();
-            Cursor.Show();
-            gameState = GameState.PAUSE;
+            GAME_CONTROL.Pause();
         }
 
         private static void Game_NumberOfStarsOrAsteroidsHasChanged()
         {
             if (NOW_STAR_COUNT == 0 && NOW_ASTEROID_COUNT == 0)
             {
-                gameLevels.NextLevel();
+                GAME_LEVELS.NextLevel();
                 Load();
             }
         }
@@ -140,50 +154,50 @@ namespace AstroGame
         // Отсутствие энергии у корабля
         private static void Ship_OutOfEnergy()
         {
-            GameOver();
+            GAME_CONTROL.Stop();
         }
 
-        private static void GameStart()
-        {
-            gameTicker.Start();
-            gameState = GameState.PLAY;
-            Cursor.Hide();
-        }
+        //private static void GameStart()
+        //{
+        //    gameTicker.Start();
+        //    gameState = GameState.PLAYING;
+        //    Cursor.Hide();
+        //}
 
-        private static void GameStop()
-        {
-            gameTicker.Stop();
-            Cursor.Show();
-        }
+        //private static void GameStop()
+        //{
+        //    gameTicker.Stop();
+        //    Cursor.Show();
+        //}
 
-        private static void RetryGame()
-        {
-            gameLevels = new GameLevels();
-            GameStart();
-        }
+        //private static void RetryGame()
+        //{
+        //    GAME_LEVELS = new GameLevels();
+        //    GameStart();
+        //}
 
-        private static void GameOver()
-        {
-            GameStop();
-            gameState = GameState.STOP;
+        //private static void GameOver()
+        //{
+        //    GameStop();
+        //    gameState = GameState.STOP;
 
-            if(MessageBox.Show($"Ваш корабль был уничтожен.\nУровень: {gameLevels.CurrentLevel.ToString()}\nНабрано очков: {GamePoints.Value.ToString()}", "Конец игры", MessageBoxButtons.RetryCancel) == DialogResult.Retry)
-            {
-                RetryGame();
-                Load(true);
-            }
-            else
-            {
-                Application.Exit();
-            }
-        }
+        //    if(MessageBox.Show($"Ваш корабль был уничтожен.\nУровень: {CONF_CURRENT_LEVEL}\nНабрано очков: {GamePoints.Value}", "Конец игры", MessageBoxButtons.RetryCancel) == DialogResult.Retry)
+        //    {
+        //        RetryGame();
+        //        Load(true);
+        //    }
+        //    else
+        //    {
+        //        Application.Exit();
+        //    }
+        //}
 
         private static void Form_MouseDown(object sender, MouseEventArgs e)
         {
             // Выстрел по нажатию ЛКМ
             if (e.Button == MouseButtons.Left)
             {
-                if (gameState == GameState.PLAY)
+                if (GAME_CONTROL.GameState == GameState.PLAYING)
                     bullets.Add(new Bullet(new Point((ship.Position.X + ship.Size.Width / 2), ship.Position.Y), new Point(0, CONF_BULLET_SPEED)));
             }
         }
@@ -217,11 +231,11 @@ namespace AstroGame
             EnergyValue = ship.Energy;
 
             // Обновление поведения игровых объектов
-            gameTicker = new Timer();
+            //if (newShip) gameTicker = new Timer();
             gameTicker.Interval = 100;
             gameTicker.Tick += GameTimer_Tick;
             gameTicker.Start();
-            gameState = GameState.PLAY;
+            GAME_CONTROL.Start();
         }
 
         private static void GameTimer_Tick(object sender, EventArgs e)
@@ -232,10 +246,11 @@ namespace AstroGame
 
         static public void Draw()
         {
-            buffer.Graphics.DrawImage(background, 0, 0);
+            buffer.Graphics.DrawImage(background, 0, 0); // Фон
+            // Информационные лейблы
             Game.buffer.Graphics.DrawString(EnergyText + EnergyValue.ToString(), SystemFonts.CaptionFont, Brushes.White, 0, 0);
             Game.buffer.Graphics.DrawString(GamePoints.GetPointsToString(), SystemFonts.CaptionFont, Brushes.White, 75, 0);
-            Game.buffer.Graphics.DrawString(gameLevels.GetCurrentLevelToString(), SystemFonts.CaptionFont, Brushes.White, 150, 0);
+            Game.buffer.Graphics.DrawString(GAME_LEVELS.GetCurrentLevelToString(), SystemFonts.CaptionFont, Brushes.White, 200, 0);
 
             foreach (Star star in stars)
                 star?.Draw();
@@ -250,6 +265,7 @@ namespace AstroGame
             buffer.Render();
         }
 
+        // Обновить состояние игровых объектов
         static public void Update()
         {
             ship?.Update();
