@@ -8,40 +8,49 @@ namespace AstroGame
 {
     class GameLevels
     {
-        private int asteroidSpeed;
-        private int starSpeed;
-        private int bulletSpeed;
+        private double asteroidCount;
+        private double asteroidSpeed;
+        private double starCount;
+        private double starSpeed;
+        private double bulletSpeed;
+        private double healboxCount;
 
-        public event Action LevelIsChanged; // Событие изменения уровня
+        public static event Action LevelIsChanged; // Событие изменения уровня
 
         // Текущий уровень
         public int CurrentLevel { get; private set; } 
 
         // Астероиды
-        public int AsteroidCount { get; private set; }
+        public int AsteroidCount
+        {
+            get
+            {
+                return (int)asteroidCount;
+            }
+        }
+
         public int AsteroidSpeed
         {
             get
             {
-                return asteroidSpeed;
-            }
-            private set
-            {
-                if (value < 30) asteroidSpeed = value;
+                return (int)asteroidSpeed;
             }
         }
 
         // Звезды
-        public int StarCount { get; private set; }
+        public int StarCount
+        {
+            get
+            {
+                return (int)starCount;
+            }
+        }
+
         public int StarSpeed
         {
             get
             {
-                return starSpeed;
-            }
-            private set
-            {
-                if (value < 50) starSpeed = value;
+                return (int)starSpeed;
             }
         }
 
@@ -50,63 +59,52 @@ namespace AstroGame
         {
             get
             {
-                return bulletSpeed;
-            }
-            private set
-            {
-                if (value < 60) bulletSpeed = value;
+                return (int)bulletSpeed;
             }
         }
 
         // Аптечка
-        public int HealBoxCount { get; set; }
+        public int HealBoxCount
+        {
+            get
+            {
+                return (int)healboxCount;
+            }
+        }
 
         public GameLevels()
         {
-            CurrentLevel = 1;
-
-            AsteroidCount = 1;
-            AsteroidSpeed = 6;
-
-            StarCount = 30;
-            StarSpeed = 7;
-
-            BulletSpeed = 20;
-
-            HealBoxCount = 1;
-
-            LevelIsChanged += GameLevels_LevelIsChanged;
-        }
-
-        private void GameLevels_LevelIsChanged()
-        {
-            // Изменения каждые N уровней
-            if (CurrentLevel % 1 == 0)
-            {
-                StarCount++;
-            }
-            if (CurrentLevel % 5 == 0)
-            {
-                AsteroidCount++;
-                StarSpeed++;
-            }
-            if (CurrentLevel % 9 == 0)
-            {
-                BulletSpeed++;
-                AsteroidSpeed++;
-                HealBoxCount++;
-            }
+            DefaultValues();
         }
 
         public void NextLevel()
         {
             CurrentLevel++;
+
+            asteroidCount += 0.3;
+            asteroidSpeed += 0.2;
+            starCount += 1.0;
+            starSpeed += 0.4;
+            bulletSpeed += 0.1;
+            healboxCount += 0.2;
+
             LevelIsChanged?.Invoke();
         }
 
         public string GetCurrentLevelToString()
         {
             return $"Уровень: {CurrentLevel}";
+        }
+
+        public void DefaultValues()
+        {
+            CurrentLevel = 1;
+            asteroidCount = 1.0;
+            asteroidSpeed = 6.0;
+            starCount = 30.0;
+            starSpeed = 7.0;
+            bulletSpeed = 20.0;
+            healboxCount = 1.0;
         }
     }
 }

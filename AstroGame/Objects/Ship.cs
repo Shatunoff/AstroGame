@@ -54,7 +54,7 @@ namespace AstroGame
         public Ship(Point position, Point direction)
             : base(position, direction, new Size(50, 50))
         {
-
+            EnergyChanged?.Invoke();
         }
 
         public override void Draw()
@@ -77,7 +77,7 @@ namespace AstroGame
 
         public override void Reset()
         {
-
+            position = new Point(Game.Width / 2, Game.Height);
         }
 
         public void Move(Point direction)

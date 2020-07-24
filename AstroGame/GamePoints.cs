@@ -6,14 +6,15 @@ using System.Threading.Tasks;
 
 namespace AstroGame
 {
-    static class GamePoints
+    class GamePoints
     {
-        static public string    Caption { get; private set; }   = "Очки";
-        static public int       Value   { get; private set; }   = 0;
+        public string    Caption { get; private set; }   = "Очки";
+        public int       Value   { get; private set; }   = 0;
 
-        static public string    GetPointsToString()             => Caption + ": " + Value.ToString();
-        static public void      PointsLowUp()                   => Value += 100;
-        static public void      PointsMiddleUp()                => Value += 200;
-        static public void      PointsHightUp()                 => Value += 300;
+        public string    GetPointsToString()             => Caption + ": " + Value.ToString();
+        public void      PointsLowUp()                   => Value += 100;
+        public void      PointsMiddleUp()                => Value += 200;
+        public void      PointsHightUp()                 => Value += 300;
+        public void      Reset()                         => Value = 0;
     }
 }
